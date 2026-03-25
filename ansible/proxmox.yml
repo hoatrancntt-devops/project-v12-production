@@ -1,0 +1,14 @@
+---
+- name: Configure Proxmox VM Database
+  hosts: proxmox_vm
+  become: true
+  vars:
+    wg_role: "client"
+    wg_address: "10.0.0.2/24"
+    wg_peer_public_key: "{{ wg_public_key_ec2 }}"
+    wg_peer_allowed_ips: "10.0.0.1/32"
+    wg_peer_endpoint: "{{ ec2_public_ip }}:51820"
+  roles:
+    - common
+    - wireguard
+    - postgresql

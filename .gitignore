@@ -1,0 +1,13 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+
+# Ansible
+*.retry
+ansible/group_vars/all/vault.yml
+
+# Keys
+*.pem
+privatekey

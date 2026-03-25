@@ -1,0 +1,40 @@
+from flask import Flask, request, render_template_string
+import psycopg2
+
+app = Flask(__name__)
+
+def get_db():
+    return psycopg2.connect(
+        host="10.0.0.2",
+        database="{{ db_name }}",
+        user="{{ db_user }}",
+        password="{{ db_password }}"
+    )
+
+HTML = """
+<!DOCTYPE html>
+<html><head><title>{{ app_name }}</title>
+<style>body{font-family:Arial;max-width:600px;margin:40px auto;padding:20px}
+input,button{padding:8px;margin:4px}table{width:100%;border-collapse:collapse}
+td,th{border:1px solid #ddd;padding:8px}</style></head>
+<body><h1>{{ app_name }} - Hybrid Cloud</h1>
+<form method="POST"><input name="entry" placeholder="Type something...">
+<button type="submit">Add</button></form>
+<table><tr><th>ID</th><th>Content</th><th>Created</th></tr>
+{% for e in entries %}<tr><td>{{e[0]}}</td><td>{{e[1]}}</td><td>{{e[2]}}</td></tr>{% endfor %}
+</table></body></html>"""
+
+@app.route("/", methods=["GET","POST"])
+def index():
+    db = get_db()
+    cur = db.cursor()
+    if request.method == "POST":
+        cur.execute("INSERT INTO entries (content) VALUES (%s)", (request.form["entry"],))
+        db.commit()
+    cur.execute("SELECT * FROM entries ORDER BY id DESC")
+    entries = cur.fetchall()
+    cur.close(); db.close()
+    return render_template_string(HTML, entries=entries)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port={{ app_port }})

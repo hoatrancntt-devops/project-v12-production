@@ -1,0 +1,14 @@
+[Unit]
+Description=Flask App - {{ app_name }}
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/opt/flask-app
+ExecStart=/opt/flask-app/venv/bin/python app.py
+Restart=always
+RestartSec=5
+Environment=FLASK_ENV=production
+
+[Install]
+WantedBy=multi-user.target

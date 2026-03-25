@@ -1,0 +1,47 @@
+---
+- name: Install Python & pip
+  apt:
+    name:
+      - python3
+      - python3-pip
+      - python3-venv
+    state: present
+
+- name: Create app directory
+  file:
+    path: /opt/flask-app
+    state: directory
+    owner: ubuntu
+    mode: '0755'
+
+- name: Create virtual environment
+  command: python3 -m venv /opt/flask-app/venv
+  args:
+    creates: /opt/flask-app/venv
+
+- name: Install Flask & psycopg2
+  pip:
+    name:
+      - flask
+      - psycopg2-binary
+    virtualenv: /opt/flask-app/venv
+
+- name: Deploy app.py
+  template:
+    src: app.py.j2
+    dest: /opt/flask-app/app.py
+    owner: ubuntu
+  notify: restart flask
+
+- name: Deploy systemd service
+  template:
+    src: flask-app.service.j2
+    dest: /etc/systemd/system/flask-app.service
+  notify: restart flask
+
+- name: Enable and start Flask service
+  systemd:
+    name: flask-app
+    enabled: yes
+    state: started
+    daemon_reload: yes

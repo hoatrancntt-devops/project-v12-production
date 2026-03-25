@@ -1,0 +1,14 @@
+---
+- name: Configure EC2 Web Server
+  hosts: ec2
+  become: true
+  vars:
+    wg_role: "server"
+    wg_address: "10.0.0.1/24"
+    wg_listen_port: 51820
+    wg_peer_public_key: "{{ wg_public_key_proxmox }}"
+    wg_peer_allowed_ips: "10.0.0.2/32"
+  roles:
+    - common
+    - wireguard
+    - flask_app

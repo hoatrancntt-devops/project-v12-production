@@ -1,0 +1,25 @@
+---
+- name: Install WireGuard
+  apt:
+    name: wireguard
+    state: present
+
+- name: Deploy WireGuard config
+  template:
+    src: wg0.conf.j2
+    dest: /etc/wireguard/wg0.conf
+    mode: '0600'
+  notify: restart wireguard
+
+- name: Enable and start WireGuard
+  systemd:
+    name: wg-quick@wg0
+    enabled: yes
+    state: started
+
+- name: Add cron for auto-reconnect (client only)
+  cron:
+    name: "wireguard-reconnect"
+    minute: "*/5"
+    job: "/usr/bin/ping -c 1 10.0.0.1 > /dev/null 2>&1 || /usr/bin/systemctl restart wg-quick@wg0"
+  when: wg_role == "client"

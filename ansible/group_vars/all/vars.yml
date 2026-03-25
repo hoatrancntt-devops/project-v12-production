@@ -1,0 +1,17 @@
+---
+app_name: "project_V12"
+app_port: 5000
+app_dir: "/opt/flask-app""
+db_name: "project_v11""
+db_user: "appuser""
+db_password: "{{ vault_db_password }}"
+wg_listen_port: 51820
+wg_server_ip: "10.0.0.1""
+wg_client_ip: "10.0.0.2""
+wg_subnet: "10.0.0.0/24""
+wg_private_key_ec2: "{{ vault_wg_private_key_ec2 }}"
+wg_public_key_ec2: "{{ vault_wg_public_key_ec2 }}"
+wg_private_key_proxmox: "{{ vault_wg_private_key_proxmox }}"
+wg_public_key_proxmox: "{{ vault_wg_public_key_proxmox }}"
+ec2_public_ip: "EC2_PUBLIC_IP"          # ← Cập nhật sau terraform output
+pg_version: "14""

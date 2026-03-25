@@ -1,0 +1,15 @@
+[Interface]
+PrivateKey = {% if wg_role == "server" %}{{ wg_private_key_ec2 }}{% else %}{{ wg_private_key_proxmox }}{% endif %}
+
+Address = {{ wg_address }}
+{% if wg_role == "server" %}
+ListenPort = {{ wg_listen_port }}
+{% endif %}
+
+[Peer]
+PublicKey = {{ wg_peer_public_key }}
+AllowedIPs = {{ wg_peer_allowed_ips }}
+{% if wg_role == "client" %}
+Endpoint = {{ wg_peer_endpoint }}
+PersistentKeepalive = 25
+{% endif %}
