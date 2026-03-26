@@ -1,6 +1,16 @@
-# ← Chỉ khai báo 3 biến SENSITIVE — còn lại đọc từ local.cfg
-variable "ssh_public_key"       { description = "SSH public key for EC2 + Proxmox VM" }
-variable "proxmox_api_token"    { sensitive = true }  # ← HCP Variables
-variable "proxmox_ssh_password" { sensitive = true }
-variable "proxmox_node"         { default = "promox02"" }
-variable "vm_template"          { default = "ubuntu-cloud-init"" }
+variable "ssh_public_key" {
+  description = "SSH public key cho EC2 + Proxmox VM"
+  type        = string
+}
+
+variable "proxmox_api_token" {
+  description = "Proxmox API token (format: USER@REALM!TOKENID=UUID)"
+  type        = string
+  sensitive   = true
+}
+
+variable "proxmox_ssh_password" {
+  description = "Root SSH password Proxmox host"
+  type        = string
+  sensitive   = true
+}

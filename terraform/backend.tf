@@ -1,6 +1,6 @@
 terraform {
   cloud {
-    organization = "htg-org-name""
+    organization = "htg-org-name"
     workspaces {
       name = "project-v12-production"
     }
