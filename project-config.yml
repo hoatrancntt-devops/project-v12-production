@@ -1,72 +1,72 @@
-#====================================================================
+#================================================================
 # project-config.yml — CENTRALIZED CONFIGURATION
-# Vị trí: project-v11/project-config.yml (thư mục gốc)
+# Vị trí: project-v12/project-config.yml (thư mục gốc)
 #
 # Mục đích: Khai báo TẤT CẢ thông số custom 1 LẦN DUY NHẤT.
 # Dùng cho: Tạo thủ công (tham khảo) hoặc Auto Generate (tự đọc).
 # Khi cần thay đổi: Sửa file này → chạy lại generate-project.sh.
-#====================================================================
+#================================================================
 
-# ══════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
 # PROJECT & HCP
-# ══════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
 project_name: "project_V12"
-hcp_org: "htg-org-name"                    # ← Tên Organization trên app.terraform.io
-hcp_workspace: "project-v11-production"
-github_repo: "hoatrancntt-devops/project-v11-production"
+hcp_org:       "htg-org-name"          # ← Tên Organization trên app.terraform.io
+hcp_workspace: "project-v12-production"
+github_repo:   "hoatrancntt-devops/project-v12-production"
 
-# ══════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
 # AWS
-# ══════════════════════════════════════════════════════════
-aws_region: "ap-southeast-1"               # Singapore
-ami_id: "ami-0672fd5b9210aa093"            # Ubuntu 22.04 LTS (ap-southeast-1)
-instance_type: "t2.micro"                 # Free tier eligible
+# ═══════════════════════════════════════════════════════
+aws_region:    "ap-southeast-1"         # Singapore
+ami_id:        "ami-0672fd5b9210aa093"   # Ubuntu 22.04 LTS (ap-southeast-1)
+instance_type: "t2.micro"               # Free tier eligible
 
-# ══════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
 # PROXMOX ON-PREMISE
-# ══════════════════════════════════════════════════════════
-proxmox_api_url: "https://172.199.10.165:8006"  # IP máy Proxmox host (không có /api2/json)
-proxmox_node: "promox02"                   # Tên node trong Proxmox (Datacenter → Node)
-vm_template: "ubuntu-cloud-init"       # Tên template đã chuẩn bị trên Proxmox
-vm_id: 9000                                  # VM ID sẽ tạo
-vm_name: "project-v12-vm"                 # Tên VM hiển thị trên Proxmox
-vm_ip: "172.199.10.180"                  # IP tĩnh cho VM mới (cùng subnet với Proxmox host)
-vm_cidr: "24"                              # Subnet mask (24 = 255.255.255.0)
-vm_gateway: "172.199.10.1"                # Gateway mạng nội bộ
-vm_cores: 2                                # Số CPU cores
-vm_memory: 2048                            # RAM (MB)
-vm_disk_size: 20                            # Disk (GB)
-vm_bridge: "vmbr0"                        # Network bridge trên Proxmox
+# ═══════════════════════════════════════════════════════
+proxmox_api_url: "https://172.199.10.165:8006"  # IP máy Proxmox host
+proxmox_node:    "promox02"                    # Tên node trong Proxmox
+vm_template:     "ubuntu-cloud-init"           # Tên template đã chuẩn bị
+vm_id:          9000                          # VM ID sẽ tạo
+vm_name:        "project-v12-vm"              # Tên VM hiển thị trên Proxmox
+vm_ip:          "172.199.10.180"              # IP tĩnh (cùng subnet Proxmox host)
+vm_cidr:        "24"                          # Subnet mask (24 = 255.255.255.0)
+vm_gateway:     "172.199.10.1"                # Gateway mạng nội bộ
+vm_cores:       2                             # Số CPU cores
+vm_memory:      2048                          # RAM (MB)
+vm_disk_size:   20                            # Disk (GB)
+vm_bridge:      "vmbr0"                       # Network bridge trên Proxmox
 
-# ══════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
 # WIREGUARD VPN
-# ══════════════════════════════════════════════════════════
-wg_listen_port: 51820                      # Port UDP cho WireGuard
-wg_server_ip: "10.0.0.1"                  # EC2 = WireGuard Server
-wg_client_ip: "10.0.0.2"                  # Proxmox VM = WireGuard Client
-wg_subnet: "10.0.0.0/24"                  # VPN subnet
+# ═══════════════════════════════════════════════════════
+wg_listen_port: 51820                         # Port UDP cho WireGuard
+wg_server_ip:   "10.0.0.1"                    # EC2 = WireGuard Server
+wg_client_ip:   "10.0.0.2"                    # Proxmox VM = WireGuard Client
+wg_subnet:      "10.0.0.0/24"                 # VPN subnet
 
-# ══════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
 # DATABASE (PostgreSQL)
-# ══════════════════════════════════════════════════════════
-db_name: "project_v11"                    # Tên database
-db_user: "appuser"                        # User cho Flask app kết nối
-pg_version: "14"                           # PostgreSQL version (Ubuntu 22.04 = 14, 24.04 = 16)
+# ═══════════════════════════════════════════════════════
+db_name:       "project_v12"                 # Tên database
+db_user:       "appuser"                     # User cho Flask app kết nối
+pg_version:    "14"                          # PostgreSQL version
 
-# ══════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
 # FLASK WEB APP
-# ══════════════════════════════════════════════════════════
-flask_port: 5000                            # Port Flask app listen
-flask_app_dir: "/opt/flask-app"            # Thư mục cài Flask trên EC2
+# ═══════════════════════════════════════════════════════
+flask_port:    5000                          # Port Flask app listen
+flask_app_dir: "/opt/flask-app"              # Thư mục cài Flask trên EC2
 
-# ══════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
 # SSH
-# ══════════════════════════════════════════════════════════
-ssh_user: "ubuntu"                         # User SSH vào EC2 + Proxmox VM
-ssh_key_path: "~/.ssh/id_project_v11"     # Path private key trên máy local
+# ═══════════════════════════════════════════════════════
+ssh_user:      "ubuntu"                      # User SSH vào EC2 + Proxmox VM
+ssh_key_path:  "~/.ssh/id_project_v12"       # Path private key trên máy local
 
-#====================================================================
-# ⛔ KHÔNG khai báo secrets ở đây! Secrets nằm riêng tại:
-#   HCP Variables  → proxmox_api_token, proxmox_ssh_password, ssh_public_key
-#   Ansible Vault  → db_password, wg_private_key_ec2, wg_private_key_proxmox
-#====================================================================
+#================================================================
+# 🚫 KHÔNG khai báo secrets ở đây! Secrets nằm riêng tại:
+#    HCP Variables  → proxmox_api_token, proxmox_ssh_password, ssh_public_key
+#    Ansible Vault  → db_password, wg_private_key_ec2, wg_private_key_proxmox
+#================================================================

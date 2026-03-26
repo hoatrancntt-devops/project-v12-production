@@ -2,7 +2,7 @@ terraform {
   cloud {
     organization = "htg-org-name""
     workspaces {
-      name = "project-v11-production"
+      name = "project-v12-production"
     }
   }
   required_providers {

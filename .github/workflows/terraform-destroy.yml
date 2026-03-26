@@ -1,0 +1,51 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:          # ← Chỉ trigger thủ công (CTO/Admin)
+    inputs:
+      confirm:
+        description: 'Nhập DESTROY để xác nhận hủy toàn bộ hạ tầng'
+        required: true
+
+jobs:
+  # ─── JOB: Destroy — chờ CTO approve ────────────────────
+  destroy:
+    name: "Destroy Infrastructure — CTO Approval Required"
+    runs-on: ubuntu-latest
+    environment: production-destroy   # ← GitHub gửi email → CTO approve
+    if: github.event.inputs.confirm == 'DESTROY'
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Bước 1: Ansible dừng services gracefully trước khi xóa
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_project_v12
+          chmod 600 ~/.ssh/id_project_v12
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      - name: Ansible — Stop services gracefully
+        run: |
+          ansible-playbook \
+            -i ansible/inventory/hosts.yml \
+            ansible/shutdown.yml \
+            --vault-password-file <(echo "${{ secrets.ANSIBLE_VAULT_PASS }}")
+        continue-on-error: true    # Nếu host đã down thì bỏ qua, vẫn destroy
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+
+      # ── Bước 2: Terraform Destroy toàn bộ hạ tầng ──────────
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform
+
+      - name: Terraform Destroy    # Xóa: EC2, VPC, ALB, Proxmox VM
+        run: terraform destroy -auto-approve
+        working-directory: terraform

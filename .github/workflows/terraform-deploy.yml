@@ -1,0 +1,112 @@
+name: Terraform + Ansible Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'terraform/**'
+      - 'ansible/**'
+      - 'project-config.yml'
+
+jobs:
+  # ─── JOB 1: Terraform Plan ──────────────────────────────
+  plan:
+    name: "① Terraform Plan"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+        working-directory: terraform
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: terraform/tfplan
+
+  # ─── JOB 2: Terraform Apply — chờ CTO approve ──────────
+  apply:
+    name: "② Terraform Apply — CTO Approval Required"
+    needs: plan
+    runs-on: ubuntu-latest
+    environment: production       # ← GitHub gửi email → CTO approve tại đây
+    outputs:
+      ec2_ip: ${{ steps.tf_out.outputs.ec2_ip }}
+      vm_ip:  ${{ steps.tf_out.outputs.vm_ip }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      - uses: actions/download-artifact@v4
+        with: name: tfplan
+              path: terraform
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+        working-directory: terraform
+      - name: Get Output IPs     # Lấy IP để truyền sang Ansible
+        id: tf_out
+        run: |
+          echo "ec2_ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
+          echo "vm_ip=$(terraform output -raw proxmox_vm_ip)"  >> $GITHUB_OUTPUT
+        working-directory: terraform
+
+  # ─── JOB 3: Ansible Deploy — tự động sau khi apply ─────
+  ansible-deploy:
+    name: "③ Ansible Deploy — AWS + Proxmox + Phần mềm"
+    needs: apply
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ansible + Collections
+        run: |
+          pip install ansible
+          ansible-galaxy collection install community.postgresql
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ needs.apply.outputs.ec2_ip }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ needs.apply.outputs.vm_ip }}  >> ~/.ssh/known_hosts
+
+      - name: Generate Ansible Inventory từ Terraform output
+        run: |
+          cat > ansible/inventory/hosts.yml << EOF
+          all:
+            children:
+              ec2:
+                hosts:
+                  ${{ needs.apply.outputs.ec2_ip }}:
+                    ansible_user: ubuntu
+                    ansible_ssh_private_key_file: ~/.ssh/id_project_v12
+              proxmox_vm:
+                hosts:
+                  ${{ needs.apply.outputs.vm_ip }}:
+                    ansible_user: ubuntu
+                    ansible_ssh_private_key_file: ~/.ssh/id_project_v12
+          EOF
+
+      - name: Wait for SSH ready    # Chờ EC2/VM boot xong
+        run: |
+          sleep 30
+          ansible all -i ansible/inventory/hosts.yml -m ping --timeout=60
+
+      - name: Run Ansible Playbook   # Deploy toàn bộ: WireGuard + Flask + PostgreSQL
+        run: |
+          ansible-playbook \
+            -i ansible/inventory/hosts.yml \
+            ansible/site.yml \
+            --vault-password-file <(echo "${{ secrets.ANSIBLE_VAULT_PASS }}")
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"

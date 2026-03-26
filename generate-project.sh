@@ -130,7 +130,7 @@ echo "  📄 terraform/variables.tf"
 cat > "terraform/main.tf" <<EOF
 # ============ AWS ============
 resource "aws_key_pair" "deployer" {
-  key_name   = "project-v11-key"
+  key_name   = "project-v12-key"
   public_key = var.ssh_public_key
 }
 
@@ -138,7 +138,7 @@ resource "aws_vpc" "main" {
   cidr_block           = "10.10.0.0/16"
   enable_dns_support   = true
   enable_dns_hostnames = true
-  tags = { Name = "project-v11-vpc" }
+  tags = { Name = "project-v12-vpc" }
 }
 
 resource "aws_subnet" "public" {
@@ -146,7 +146,7 @@ resource "aws_subnet" "public" {
   cidr_block              = "10.10.1.0/24"
   availability_zone       = "\${var.aws_region}a"
   map_public_ip_on_launch = true
-  tags = { Name = "project-v11-public" }
+  tags = { Name = "project-v12-public" }
 }
 
 resource "aws_subnet" "public_b" {
@@ -154,12 +154,12 @@ resource "aws_subnet" "public_b" {
   cidr_block              = "10.10.2.0/24"
   availability_zone       = "\${var.aws_region}b"
   map_public_ip_on_launch = true
-  tags = { Name = "project-v11-public-b" }
+  tags = { Name = "project-v12-public-b" }
 }
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
-  tags   = { Name = "project-v11-igw" }
+  tags   = { Name = "project-v12-igw" }
 }
 
 resource "aws_route_table" "public" {
@@ -182,7 +182,7 @@ resource "aws_route_table_association" "public_b" {
 
 resource "aws_security_group" "web" {
   vpc_id = aws_vpc.main.id
-  name   = "project-v11-web-sg"
+  name   = "project-v12-web-sg"
 
   ingress { from_port = 22;    to_port = 22;    protocol = "tcp"; cidr_blocks = ["0.0.0.0/0"] }
   ingress { from_port = 80;    to_port = 80;    protocol = "tcp"; cidr_blocks = ["0.0.0.0/0"] }
@@ -190,7 +190,7 @@ resource "aws_security_group" "web" {
   ingress { from_port = 51820; to_port = 51820; protocol = "udp"; cidr_blocks = ["0.0.0.0/0"] }
   egress  { from_port = 0;     to_port = 0;     protocol = "-1";  cidr_blocks = ["0.0.0.0/0"] }
 
-  tags = { Name = "project-v11-web-sg" }
+  tags = { Name = "project-v12-web-sg" }
 }
 
 resource "aws_instance" "web" {
@@ -200,12 +200,12 @@ resource "aws_instance" "web" {
   vpc_security_group_ids = [aws_security_group.web.id]
   key_name               = aws_key_pair.deployer.key_name
   # Không có user-data — Ansible sẽ cấu hình sau
-  tags = { Name = "project-v11-web" }
+  tags = { Name = "project-v12-web" }
 }
 
 # ============ ALB ============
 resource "aws_lb" "alb" {
-  name               = "project-v11-alb"
+  name               = "project-v12-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.web.id]
@@ -213,7 +213,7 @@ resource "aws_lb" "alb" {
 }
 
 resource "aws_lb_target_group" "tg" {
-  name     = "project-v11-tg"
+  name     = "project-v12-tg"
   port     = 5000
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
@@ -246,12 +246,12 @@ resource "proxmox_virtual_environment_file" "cloud_init" {
     data = templatefile("\${path.module}/cloud-init-basic.cfg", {
       ssh_public_key = var.ssh_public_key
     })
-    file_name = "project-v11-ci.yml"
+    file_name = "project-v12-ci.yml"
   }
 }
 
 resource "proxmox_virtual_environment_vm" "db" {
-  name      = "project-v11-db"
+  name      = "project-v12-db"
   node_name = var.proxmox_node
   vm_id     = 1100
 
@@ -716,7 +716,7 @@ echo ""
 echo "=================================="
 echo "✅ HOÀN TẤT! Cấu trúc project:"
 echo "=================================="
-find "$PROJECT" -type f | sort | head -40
+#find "$PROJECT" -type f | sort | head -40
 
 echo ""
 echo "📋 Config đã được đọc từ: $CONFIG"

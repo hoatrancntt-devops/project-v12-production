@@ -1,0 +1,30 @@
+# ansible/shutdown.yml
+- name: Stop services on EC2
+  hosts: ec2
+  become: true
+  tasks:
+    - name: Stop Flask app
+      ansible.builtin.service:
+        name: flask-app
+        state: stopped
+      ignore_errors: true
+    - name: Stop WireGuard
+      ansible.builtin.service:
+        name: wg-quick@wg0
+        state: stopped
+      ignore_errors: true
+
+- name: Stop services on Proxmox VM
+  hosts: proxmox_vm
+  become: true
+  tasks:
+    - name: Stop PostgreSQL
+      ansible.builtin.service:
+        name: postgresql
+        state: stopped
+      ignore_errors: true
+    - name: Stop WireGuard
+      ansible.builtin.service:
+        name: wg-quick@wg0
+        state: stopped
+      ignore_errors: true

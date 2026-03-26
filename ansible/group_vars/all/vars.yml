@@ -2,7 +2,7 @@
 app_name: "project_V12"
 app_port: 5000
 app_dir: "/opt/flask-app""
-db_name: "project_v11""
+db_name: "project_v12""
 db_user: "appuser""
 db_password: "{{ vault_db_password }}"
 wg_listen_port: 51820
