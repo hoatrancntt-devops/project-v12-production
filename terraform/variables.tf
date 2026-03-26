@@ -13,18 +13,21 @@ variable "instance_type" {
 
 variable "ssh_public_key" {
   description = "SSH public key for EC2 + Proxmox VM"
+  type        = string
 }
-
 variable "proxmox_api_url" {
   default = "https://172.199.10.165:8006"
 }
 
-variable "proxmox_api_token_id" {
-  description = "Proxmox API Token ID"
+variable "proxmox_api_token" {           # ← đổi từ proxmox_api_token_id
+  description = "Proxmox API token (format: USER@REALM!TOKENID=UUID)"
+  type        = string
+  sensitive   = true
 }
 
-variable "proxmox_api_token_secret" {
-  description = "Proxmox API Token Secret"
+variable "proxmox_ssh_password" {        # ← đổi từ proxmox_api_token_secret
+  description = "Root SSH password for Proxmox host"
+  type        = string
   sensitive   = true
 }
 

@@ -3,12 +3,12 @@ provider "aws" {
 }
 
 provider "proxmox" {
-  endpoint  = var.proxmox_api_url   # $PX_API_URL
-  api_token = var.proxmox_api_token # terraform@pam!tf-token=UUID
+  endpoint  = local.cfg.proxmox_api_url
+  api_token = var.proxmox_api_token        # ← tên mới
   insecure  = true
   ssh {
     agent    = false
     username = "root"
-    password = var.proxmox_ssh_password
+    password = var.proxmox_ssh_password    # ← tên mới
   }
 }
