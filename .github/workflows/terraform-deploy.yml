@@ -34,7 +34,7 @@ jobs:
     name: "② Terraform Apply — CTO Approval Required"
     needs: plan
     runs-on: ubuntu-latest
-    environment: production       # ← GitHub gửi email → CTO approve tại đây
+    environment: production
     outputs:
       ec2_ip: ${{ steps.tf_out.outputs.ec2_ip }}
       vm_ip:  ${{ steps.tf_out.outputs.vm_ip }}
@@ -44,22 +44,23 @@ jobs:
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
       - uses: actions/download-artifact@v4
-        with: name: tfplan
-              path: terraform
+        with:                          # ✅ FIX: tách riêng dòng
+          name: tfplan
+          path: terraform
       - name: Terraform Init
         run: terraform init
         working-directory: terraform
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
         working-directory: terraform
-      - name: Get Output IPs     # Lấy IP để truyền sang Ansible
+      - name: Get Output IPs
         id: tf_out
         run: |
           echo "ec2_ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
           echo "vm_ip=$(terraform output -raw proxmox_vm_ip)"  >> $GITHUB_OUTPUT
         working-directory: terraform
 
-  # ─── JOB 3: Ansible Deploy — tự động sau khi apply ─────
+  # ─── JOB 3: Ansible Deploy ─────────────────────────────
   ansible-deploy:
     name: "③ Ansible Deploy — AWS + Proxmox + Phần mềm"
     needs: apply
@@ -75,7 +76,7 @@ jobs:
       - name: Setup SSH Key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_project_v12
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ needs.apply.outputs.ec2_ip }} >> ~/.ssh/known_hosts
           ssh-keyscan -H ${{ needs.apply.outputs.vm_ip }}  >> ~/.ssh/known_hosts
@@ -97,12 +98,12 @@ jobs:
                     ansible_ssh_private_key_file: ~/.ssh/id_project_v12
           EOF
 
-      - name: Wait for SSH ready    # Chờ EC2/VM boot xong
+      - name: Wait for SSH ready
         run: |
           sleep 30
           ansible all -i ansible/inventory/hosts.yml -m ping --timeout=60
 
-      - name: Run Ansible Playbook   # Deploy toàn bộ: WireGuard + Flask + PostgreSQL
+      - name: Run Ansible Playbook
         run: |
           ansible-playbook \
             -i ansible/inventory/hosts.yml \
