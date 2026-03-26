@@ -37,7 +37,8 @@ vm_cores:       2                             # Số CPU cores
 vm_memory:      2048                          # RAM (MB)
 vm_disk_size:   20                            # Disk (GB)
 vm_bridge:      "vmbr0"                       # Network bridge trên Proxmox
-
+vm_template_id: 9000   # ID của template VM trong Proxmox
+flask_port: 5000        # Port Flask app
 # ═══════════════════════════════════════════════════════
 # WIREGUARD VPN
 # ═══════════════════════════════════════════════════════
