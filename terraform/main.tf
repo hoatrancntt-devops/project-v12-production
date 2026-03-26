@@ -8,7 +8,7 @@ resource "aws_vpc" "main" {
   cidr_block           = "10.10.0.0/16"
   enable_dns_support   = true
   enable_dns_hostnames = true
-  tags = { Name = "project-v12-vpc" }
+  tags                 = { Name = "project-v12-vpc" }
 }
 
 resource "aws_subnet" "public" {
@@ -16,7 +16,7 @@ resource "aws_subnet" "public" {
   cidr_block              = "10.10.1.0/24"
   availability_zone       = "${var.aws_region}a"
   map_public_ip_on_launch = true
-  tags = { Name = "project-v12-public" }
+  tags                    = { Name = "project-v12-public" }
 }
 
 resource "aws_subnet" "public_b" {
@@ -24,7 +24,7 @@ resource "aws_subnet" "public_b" {
   cidr_block              = "10.10.2.0/24"
   availability_zone       = "${var.aws_region}b"
   map_public_ip_on_launch = true
-  tags = { Name = "project-v12-public-b" }
+  tags                    = { Name = "project-v12-public-b" }
 }
 
 resource "aws_internet_gateway" "igw" {
@@ -49,18 +49,48 @@ resource "aws_route_table_association" "public_b" {
   subnet_id      = aws_subnet.public_b.id
   route_table_id = aws_route_table.public.id
 }
-
 resource "aws_security_group" "web" {
   vpc_id = aws_vpc.main.id
   name   = "project-v12-web-sg"
 
-  ingress { from_port = 22;    to_port = 22;    protocol = "tcp"; cidr_blocks = ["0.0.0.0/0"] }
-  ingress { from_port = 80;    to_port = 80;    protocol = "tcp"; cidr_blocks = ["0.0.0.0/0"] }
-  ingress { from_port = 5000;  to_port = 5000;  protocol = "tcp"; cidr_blocks = ["0.0.0.0/0"] }
-  ingress { from_port = 51820; to_port = 51820; protocol = "udp"; cidr_blocks = ["0.0.0.0/0"] }
-  egress  { from_port = 0;     to_port = 0;     protocol = "-1";  cidr_blocks = ["0.0.0.0/0"] }
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-  tags = { Name = "project-v12-web-sg" }
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 5000
+    to_port     = 5000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 51820
+    to_port     = 51820
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "project-v12-web-sg"
+  }
 }
 
 resource "aws_instance" "web" {
@@ -127,9 +157,12 @@ resource "proxmox_virtual_environment_vm" "db" {
 
   clone { vm_id = 9000 }
 
-  agent { enabled = true; timeout = "5m" }
+  agent {
+    enabled = true
+    timeout = "5m"
+  }
 
-  cpu    { cores = 2 }
+  cpu { cores = 2 }
   memory { dedicated = 2048 }
 
   network_device { bridge = "vmbr0" }
@@ -137,7 +170,10 @@ resource "proxmox_virtual_environment_vm" "db" {
   initialization {
     user_data_file_id = proxmox_virtual_environment_file.cloud_init.id
     ip_config {
-      ipv4 { address = "172.199.10.180"/24""; gateway = "172.199.10.1"" }
+      ipv4 {
+        address = "172.199.10.180/24"
+        gateway = "172.199.10.1"
+      }
     }
   }
 }

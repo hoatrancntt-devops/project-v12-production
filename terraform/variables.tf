@@ -1,9 +1,37 @@
-variable "aws_region"           { default = "ap-southeast-1"" }
-variable "ami_id"               { default = "ami-0672fd5b9210aa093"" }
-variable "instance_type"        { default = "t2.micro"" }
-variable "ssh_public_key"       { description = "SSH public key for EC2 + Proxmox VM" }
-variable "proxmox_api_url"      { default = "https://172.199.10.165:8006"" }
-variable "proxmox_api_token"    { sensitive = true }
-variable "proxmox_ssh_password" { sensitive = true }
-variable "proxmox_node"         { default = "promox02"" }
-variable "vm_template"          { default = "ubuntu-cloud-init"" }
+# ✅ ĐÚNG
+variable "aws_region" {
+  default = "ap-southeast-1"
+}
+
+variable "ami_id" {
+  default = "ami-0672fd5b9210aa093"
+}
+
+variable "instance_type" {
+  default = "t2.micro"
+}
+
+variable "ssh_public_key" {
+  description = "SSH public key for EC2 + Proxmox VM"
+}
+
+variable "proxmox_api_url" {
+  default = "https://172.199.10.165:8006"
+}
+
+variable "proxmox_api_token_id" {
+  description = "Proxmox API Token ID"
+}
+
+variable "proxmox_api_token_secret" {
+  description = "Proxmox API Token Secret"
+  sensitive   = true
+}
+
+variable "proxmox_node" {
+  default = "promox02"
+}
+
+variable "vm_template" {
+  default = "ubuntu-cloud-init"
+}
