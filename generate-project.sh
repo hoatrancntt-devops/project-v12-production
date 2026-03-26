@@ -100,7 +100,7 @@ provider "aws" {
 }
 
 provider "proxmox" {
-  endpoint  = var.proxmox_api_url     # $PX_API_URL
+  endpoint  = local.cfg.proxmox_api_url  # ← từ project-config.yml
   api_token = var.proxmox_api_token   # terraform@pam!tf-token=UUID
   insecure  = true
   ssh {
@@ -114,12 +114,9 @@ echo "  📄 terraform/providers.tf"
 
 # --- variables.tf (giá trị default đọc từ config) ---
 cat > "terraform/variables.tf" <<EOF
-variable "aws_region"           { default = "$AWS_REGION" }
-variable "ami_id"               { default = "$AMI_ID" }
-variable "instance_type"        { default = "$INSTANCE_TYPE" }
+# ← Chỉ khai báo 3 biến SENSITIVE — còn lại đọc từ local.cfg
 variable "ssh_public_key"       { description = "SSH public key for EC2 + Proxmox VM" }
-variable "proxmox_api_url"      { default = "$PX_API_URL" }
-variable "proxmox_api_token"    { sensitive = true }
+variable "proxmox_api_token"    { sensitive = true }  # ← HCP Variables
 variable "proxmox_ssh_password" { sensitive = true }
 variable "proxmox_node"         { default = "$PX_NODE" }
 variable "vm_template"          { default = "$VM_TPL" }
@@ -240,7 +237,7 @@ resource "aws_lb_listener" "http" {
 resource "proxmox_virtual_environment_file" "cloud_init" {
   content_type = "snippets"
   datastore_id = "local"
-  node_name    = var.proxmox_node
+  node_name    = local.cfg.proxmox_node  # ← từ project-config.yml
 
   source_raw {
     data = templatefile("\${path.module}/cloud-init-basic.cfg", {
@@ -252,10 +249,10 @@ resource "proxmox_virtual_environment_file" "cloud_init" {
 
 resource "proxmox_virtual_environment_vm" "db" {
   name      = "project-v12-db"
-  node_name = var.proxmox_node
-  vm_id     = 1100
+  node_name = local.cfg.proxmox_node   # ← từ project-config.yml
+  vm_id     = local.cfg.vm_id  # ← từ project-config.yml
 
-  clone { vm_id = 9000 }
+  clone { vm_id = local.cfg.vm_template_id }  # ← template ID từ config
 
   agent { enabled = true; timeout = "5m" }
 
@@ -367,7 +364,7 @@ echo "  📄 ansible/group_vars/all/vars.yml"
 cat > "ansible/group_vars/all/vault.yml" <<'EOF'
 ---
 # MÃ HOÁ FILE NÀY: ansible-vault encrypt group_vars/vault.yml
-vault_db_password: "YourSecureDbPassword123!"
+vault_db_password: "123123a@"
 vault_wg_private_key_ec2: "PASTE_EC2_WG_PRIVATE_KEY"
 vault_wg_public_key_ec2: "PASTE_EC2_WG_PUBLIC_KEY"
 vault_wg_private_key_proxmox: "PASTE_PROXMOX_WG_PRIVATE_KEY"
@@ -716,7 +713,7 @@ echo ""
 echo "=================================="
 echo "✅ HOÀN TẤT! Cấu trúc project:"
 echo "=================================="
-#find "$PROJECT" -type f | sort | head -40
+find "$PROJECT" -type f | sort | head -40
 
 echo ""
 echo "📋 Config đã được đọc từ: $CONFIG"
