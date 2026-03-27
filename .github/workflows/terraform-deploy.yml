@@ -9,7 +9,6 @@ on:
       - 'project-config.yml'
 
 jobs:
-  # ─── JOB 1: Terraform Plan ──────────────────────────────
   plan:
     name: "① Terraform Plan"
     runs-on: ubuntu-latest
@@ -29,7 +28,6 @@ jobs:
           name: tfplan
           path: terraform/tfplan
 
-  # ─── JOB 2: Terraform Apply — chờ CTO approve ──────────
   apply:
     name: "② Terraform Apply — CTO Approval Required"
     needs: plan
@@ -44,7 +42,7 @@ jobs:
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
       - uses: actions/download-artifact@v4
-        with:                          # ✅ FIX: tách riêng dòng
+        with:
           name: tfplan
           path: terraform
       - name: Terraform Init
@@ -59,14 +57,9 @@ jobs:
           echo "ec2_ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
           echo "vm_ip=$(terraform output -raw proxmox_vm_ip)"  >> $GITHUB_OUTPUT
         working-directory: terraform
-  - name: Run terraform plan
-  run: terraform plan -out=tfplan
-  env:
-    TF_TOKEN_app_terraform_io: ${{ secrets.HCP_TOKEN }}
-    # KHÔNG cần thay đổi gì thêm — HCP tự route đến Agent
-  # ─── JOB 3: Ansible Deploy ─────────────────────────────
+
   ansible-deploy:
-    name: "③ Ansible Deploy — AWS + Proxmox + Phần mềm"
+    name: "③ Ansible Deploy — AWS + Proxmox"
     needs: apply
     runs-on: ubuntu-latest
     steps:
@@ -81,11 +74,11 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_project_v12
-          chmod 600 ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_project_v12
           ssh-keyscan -H ${{ needs.apply.outputs.ec2_ip }} >> ~/.ssh/known_hosts
           ssh-keyscan -H ${{ needs.apply.outputs.vm_ip }}  >> ~/.ssh/known_hosts
 
-      - name: Generate Ansible Inventory từ Terraform output
+      - name: Generate Ansible Inventory
         run: |
           cat > ansible/inventory/hosts.yml << EOF
           all:
