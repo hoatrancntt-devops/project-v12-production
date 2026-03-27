@@ -59,7 +59,11 @@ jobs:
           echo "ec2_ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
           echo "vm_ip=$(terraform output -raw proxmox_vm_ip)"  >> $GITHUB_OUTPUT
         working-directory: terraform
-
+  - name: Run terraform plan
+  run: terraform plan -out=tfplan
+  env:
+    TF_TOKEN_app_terraform_io: ${{ secrets.HCP_TOKEN }}
+    # KHÔNG cần thay đổi gì thêm — HCP tự route đến Agent
   # ─── JOB 3: Ansible Deploy ─────────────────────────────
   ansible-deploy:
     name: "③ Ansible Deploy — AWS + Proxmox + Phần mềm"
